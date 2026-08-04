@@ -1,5 +1,5 @@
 /* =========================================================================
-   ADR AIRHANG SPEC CHECKER
+   COMRES AIRHANG SPEC CHECKER
    -------------------------------------------------------------------------
    What this does
    ---------------
@@ -278,7 +278,7 @@
 
     panel.innerHTML = `
       <div style="font-weight:bold; font-size:14px; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;">
-        <span>ADR Airhang QC</span>
+        <span>ComRes Airhang Check</span>
         <button id="adrqc-close" style="cursor:pointer; border:none; background:none; font-size:16px; line-height:1;">&times;</button>
       </div>
       <div style="margin-bottom:8px;">
