@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>COMRES Airhang Checker — Install</title>
+<style>
+  :root{
+    --bg: #0b1210;
+    --panel: #101a17;
+    --line: #1e2f2a;
+    --phosphor: #7fffb0;
+    --phosphor-dim: #3d7a5c;
+    --amber: #ffb454;
+    --fail: #ff6b6b;
+    --ink: #d7ece2;
+    --ink-dim: #7f9990;
+    --mono: 'IBM Plex Mono', 'Consolas', 'SFMono-Regular', monospace;
+  }
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:'IBM Plex Sans', sans-serif;
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 28px 28px;
+    background-position: -1px -1px;
+    min-height:100vh;
+  }
+  .scanline{
+    position:fixed; inset:0; pointer-events:none; z-index:50;
+    background:repeating-linear-gradient(0deg, rgba(0,0,0,0.08) 0px, rgba(0,0,0,0.08) 1px, transparent 1px, transparent 3px);
+    opacity:0.35; mix-blend-mode:multiply;
+  }
+  .wrap{max-width:760px; margin:0 auto; padding:56px 24px 120px;}
+
+  .tag{
+    font-family:var(--mono); font-size:12px; letter-spacing:0.12em; text-transform:uppercase;
+    color:var(--amber); border:1px solid var(--amber); display:inline-block;
+    padding:3px 8px; border-radius:2px; margin-bottom:18px;
+  }
+  h1{
+    font-family:var(--mono); font-weight:700; font-size:clamp(28px,5vw,44px);
+    line-height:1.15; margin:0 0 10px; color:var(--phosphor);
+    text-shadow: 0 0 18px rgba(127,255,176,0.25);
+  }
+  .sub{color:var(--ink-dim); font-size:16px; line-height:1.6; max-width:56ch; margin-bottom:36px;}
+  .sub b{color:var(--ink); font-weight:600;}
+
+  .scope-card{
+    border:1px solid var(--line); background:var(--panel); border-radius:6px;
+    padding:22px 24px; margin-bottom:14px; position:relative; overflow:hidden;
+  }
+  .scope-card::before{
+    content:""; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--phosphor-dim);
+  }
+  .scope-card.armed::before{ background: var(--phosphor); box-shadow:0 0 10px var(--phosphor); }
+
+  .step-label{
+    font-family:var(--mono); font-size:11px; color:var(--phosphor-dim); letter-spacing:0.1em;
+    text-transform:uppercase; margin-bottom:6px;
+  }
+  .step-title{ font-weight:600; font-size:16px; margin-bottom:6px; color:var(--ink); }
+  .step-body{ color:var(--ink-dim); font-size:14.5px; line-height:1.65; }
+  code, .k{
+    font-family:var(--mono); font-size:0.92em; background:#08110d; border:1px solid var(--line);
+    padding:1px 6px; border-radius:3px; color:var(--phosphor);
+  }
+
+  .install-row{
+    display:flex; align-items:center; gap:18px; flex-wrap:wrap; margin:18px 0 6px;
+  }
+  .bookmarklet-btn{
+    font-family:var(--mono); font-weight:700; font-size:14px; letter-spacing:0.02em;
+    color:#062b18; background:var(--phosphor); border:1px solid var(--phosphor);
+    padding:13px 20px; border-radius:4px; text-decoration:none; cursor:grab;
+    box-shadow:0 0 0 rgba(127,255,176,0.0); transition:box-shadow .15s ease, transform .15s ease;
+    display:inline-flex; align-items:center; gap:8px; white-space:nowrap;
+  }
+  .bookmarklet-btn:hover{ box-shadow:0 0 22px rgba(127,255,176,0.45); transform:translateY(-1px); }
+  .bookmarklet-btn:active{ cursor:grabbing; }
+  .drag-hint{ color:var(--ink-dim); font-size:13.5px; }
+  .drag-hint b{ color:var(--amber); }
+
+  .divider{ color:var(--ink-dim); font-size:12px; font-family:var(--mono); text-align:center; margin:10px 0; opacity:.6;}
+
+  .copy-row{ display:flex; gap:10px; align-items:center; margin-top:10px; }
+  .copy-btn{
+    font-family:var(--mono); font-size:12.5px; background:transparent; color:var(--phosphor);
+    border:1px solid var(--phosphor-dim); padding:8px 12px; border-radius:4px; cursor:pointer;
+  }
+  .copy-btn:hover{ border-color:var(--phosphor); }
+  .copy-status{ font-family:var(--mono); font-size:12px; color:var(--phosphor); opacity:0; transition:opacity .2s; }
+  .copy-status.show{ opacity:1; }
+
+  .legend{ display:flex; gap:14px; flex-wrap:wrap; margin-top:8px; }
+  .legend span{ font-family:var(--mono); font-size:12px; padding:3px 8px; border-radius:3px; border:1px solid var(--line);}
+  .l-pass{ color:#7fffb0; }
+  .l-fail{ color:var(--fail); }
+  .l-nospec{ color:var(--amber); }
+  .l-na{ color:var(--ink-dim); }
+
+  .status-line{
+    display:flex; align-items:center; gap:10px; font-family:var(--mono); font-size:13px;
+    color:var(--ink-dim); margin-top:44px; padding-top:18px; border-top:1px solid var(--line);
+  }
+  .dot{ width:8px; height:8px; border-radius:50%; background:var(--phosphor); box-shadow:0 0 8px var(--phosphor); flex:0 0 auto; }
+
+  footer{ margin-top:26px; color:var(--ink-dim); font-size:12.5px; line-height:1.7; }
+  a.plain{ color:var(--phosphor); }
+</style>
+</head>
+<body>
+<div class="scanline"></div>
+<div class="wrap">
+
+  <div class="tag">Airhang QC</div>
+  <h1>COMRES Airhang Spec Checker</h1>
+  <p class="sub">One favorite, click once on any open Airhang report. It reads every parameter table on the page and marks each value <b>pass</b>, <b>fail</b>, or <b>no spec yet</b> against limits you maintain in one file — no reinstall needed when the spec changes.</p>
+
+  <div class="scope-card armed">
+    <div class="step-label">Step 1 — install</div>
+    <div class="step-title">Drag the button to your favorites bar</div>
+    <div class="step-body">
+      If your favorites bar is hidden in Edge, press <code>Ctrl+Shift+B</code> first.
+    </div>
+    <div class="install-row">
+      <a class="bookmarklet-btn" id="bookmarklet-link" href="#" title="Drag me to your favorites bar">⌁ COMRES Airhang Check</a>
+      <span class="drag-hint">drag — don't click — onto the bar above your tabs</span>
+    </div>
+    <div class="divider">— or, if drag-install doesn't work on your setup —</div>
+    <div class="copy-row">
+      <button class="copy-btn" id="copy-btn">copy bookmarklet code</button>
+      <span class="copy-status" id="copy-status">copied — paste into a new favorite's URL field</span>
+    </div>
+  </div>
+
+  <div class="scope-card">
+    <div class="step-label">Step 2 — run it</div>
+    <div class="step-title">Open the report, click the favorite</div>
+    <div class="step-body">
+      Open the <code>.htm</code> Airhang report in Edge, click <b>⌁ COMRES Airhang Check</b> in the favorites bar.
+      A panel drops in top-right with a pass/fail count and a list of failures you can click to jump to.
+      Every checked cell in the report is colored inline:
+    </div>
+    <div class="legend">
+      <span class="l-pass">■ pass</span>
+      <span class="l-fail">■ fail</span>
+      <span class="l-nospec">■ no spec yet</span>
+      <span class="l-na">■ na (skipped)</span>
+    </div>
+  </div>
+
+  <div class="scope-card">
+    <div class="step-label">Step 3 — tune the spec</div>
+    <div class="step-title">Edit one file, push, done — no reinstall</div>
+    <div class="step-body">
+      The button only loads <code>comres-airhang-spec-checker.js</code> fresh from this repo every time it's clicked.
+      Edit the <code>SPEC</code> object at the top of that file, commit, push — the favorite picks up the change
+      on the next click. The in-page <b>Edit Spec</b> panel will also hand you a ready-to-paste JSON skeleton of
+      every parameter name actually found in whatever report is open, so you're not guessing labels.
+    </div>
+  </div>
+
+  <div class="status-line"><span class="dot"></span> loader points at <code id="loader-target">comres-airhang-spec-checker.js</code> in this repo</div>
+
+  <footer>
+    Runs entirely client-side against the open tab — nothing is uploaded anywhere. Source: <code>comres-airhang-spec-checker.js</code> in this repo.
+  </footer>
+</div>
+
+<script>
+  // Fill in the repo-relative script URL from wherever this page itself is hosted,
+  // so it works whether it's served at the repo root or a sub-path, without editing by hand.
+  var scriptUrl = new URL('comres-airhang-spec-checker.js', window.location.href).href;
+  document.getElementById('loader-target').textContent = scriptUrl;
+
+  var loaderSource = "(function(){var d=document,s=d.createElement('script');s.src='" +
+    scriptUrl + "?v='+Date.now();d.body.appendChild(s);})();";
+  var bookmarklet = 'javascript:' + encodeURIComponent(loaderSource);
+
+  var link = document.getElementById('bookmarklet-link');
+  link.setAttribute('href', bookmarklet);
+
+  document.getElementById('copy-btn').addEventListener('click', function () {
+    navigator.clipboard.writeText(bookmarklet).then(function () {
+      var s = document.getElementById('copy-status');
+      s.classList.add('show');
+      setTimeout(function () { s.classList.remove('show'); }, 2500);
+    });
+  });
+</script>
+</body>
+</html>
